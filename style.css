@@ -1014,6 +1014,47 @@ esp-web-install-button {
   margin: 0;
 }
 
+.flash-log__row-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.flash-log__icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.flash-log__icon-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.flash-log__icon-btn--danger:hover {
+  color: var(--danger);
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.modal__card--wide {
+  width: min(520px, 100%);
+}
+
+.modal__field + .modal__field {
+  margin-top: 12px;
+}
+
 /* ----- Responsive ----- */
 
 @media (max-width: 640px) {
