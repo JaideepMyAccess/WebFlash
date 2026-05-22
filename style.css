@@ -711,6 +711,309 @@ esp-web-install-button {
   40%, 60% { transform: translateX(6px); }
 }
 
+/* ----- Modal ----- */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.modal[hidden] {
+  display: none;
+}
+
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 9, 18, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.modal__card {
+  position: relative;
+  width: min(440px, 100%);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.modal__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.modal__subtitle {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.modal__label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.modal__input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: rgba(10, 14, 26, 0.8);
+  color: var(--text-primary);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+}
+
+.modal__input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.modal__error {
+  color: var(--danger);
+  font-size: 12px;
+  margin: 8px 0 0;
+}
+
+.modal__actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  justify-content: flex-end;
+}
+
+.modal__btn {
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--text-primary);
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+}
+
+.modal__btn:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.modal__btn:active {
+  transform: translateY(1px);
+}
+
+.modal__btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 18px var(--accent-glow);
+}
+
+.modal__btn--primary:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.modal__btn--danger {
+  color: var(--danger);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.modal__btn--danger:hover {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: var(--danger);
+}
+
+/* ----- Flash log ----- */
+
+.flash-log {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 48px auto 0;
+  padding: 0 24px;
+}
+
+.flash-log__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.flash-log__title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.flash-log__subtitle {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 4px 0 0;
+}
+
+.flash-log__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.flash-log__btn {
+  padding: 9px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+}
+
+.flash-log__btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--accent);
+}
+
+.flash-log__btn:active {
+  transform: translateY(1px);
+}
+
+.flash-log__btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 18px var(--accent-glow);
+}
+
+.flash-log__btn--primary:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.flash-log__btn--danger {
+  color: var(--danger);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.flash-log__btn--danger:hover {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: var(--danger);
+}
+
+.flash-log__table-wrap {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: auto;
+  background: var(--bg-card);
+  max-height: 420px;
+}
+
+.flash-log__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.flash-log__table th,
+.flash-log__table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-subtle);
+  white-space: nowrap;
+}
+
+.flash-log__table th {
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.02);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.flash-log__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.flash-log__table tbody tr:hover {
+  background: rgba(99, 102, 241, 0.05);
+}
+
+.flash-log__table td {
+  font-family: "JetBrains Mono", monospace;
+  color: var(--text-primary);
+}
+
+.flash-log__table td.muted {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.flash-log__status {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  font-family: "Inter", sans-serif;
+  text-transform: capitalize;
+}
+
+.flash-log__status--success {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--success);
+}
+
+.flash-log__status--error {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger);
+}
+
+.flash-log__status--started {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--warning);
+}
+
+.flash-log__empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+  margin: 0;
+}
+
 /* ----- Responsive ----- */
 
 @media (max-width: 640px) {
@@ -721,6 +1024,12 @@ esp-web-install-button {
     margin-bottom: 36px;
   }
   .device-card {
+    padding: 22px;
+  }
+  .flash-log {
+    padding: 0 16px;
+  }
+  .modal__card {
     padding: 22px;
   }
 }

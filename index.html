@@ -306,10 +306,190 @@
         </p>
       </section>
 
+      <section id="flashLog" class="flash-log" style="display: none">
+        <div class="flash-log__header">
+          <div>
+            <h2 class="flash-log__title">Flash Log</h2>
+            <p class="flash-log__subtitle">
+              <span id="logCount">0</span> entries stored locally on this
+              browser
+            </p>
+          </div>
+          <div class="flash-log__actions">
+            <input
+              type="file"
+              id="csvUpload"
+              accept=".csv,text/csv"
+              hidden
+            />
+            <button
+              type="button"
+              class="flash-log__btn"
+              id="uploadCsvBtn"
+            >
+              Upload CSV
+            </button>
+            <button
+              type="button"
+              class="flash-log__btn flash-log__btn--primary"
+              id="exportCsvBtn"
+            >
+              Export CSV
+            </button>
+            <button
+              type="button"
+              class="flash-log__btn flash-log__btn--danger"
+              id="clearLogBtn"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+        <div class="flash-log__table-wrap">
+          <table class="flash-log__table">
+            <thead>
+              <tr>
+                <th>QR / Serial</th>
+                <th>Code File</th>
+                <th>Flash Date &amp; Time</th>
+                <th>Status</th>
+                <th>MAC Address</th>
+              </tr>
+            </thead>
+            <tbody id="logTbody"></tbody>
+          </table>
+          <p id="logEmpty" class="flash-log__empty">
+            No flash entries yet. Connect &amp; flash a device or upload a
+            CSV to get started.
+          </p>
+        </div>
+      </section>
+
       <footer class="footer">
         © MyAccess Private Limited · IoT, AI &amp; Robotics
       </footer>
     </main>
+
+    <div id="qrModal" class="modal" hidden>
+      <div class="modal__backdrop" data-modal-dismiss="qrModal"></div>
+      <form class="modal__card" id="qrForm" autocomplete="off">
+        <h3 class="modal__title">Board QR / Serial Number</h3>
+        <p class="modal__subtitle">
+          Scan or enter the QR / serial number printed on the board before
+          starting the flash.
+        </p>
+        <label for="qrInput" class="modal__label">QR / Serial</label>
+        <input
+          type="text"
+          id="qrInput"
+          class="modal__input"
+          placeholder="e.g. NCQR-000123"
+          required
+        />
+        <p id="qrError" class="modal__error" role="alert" hidden>
+          Please enter a QR / serial number.
+        </p>
+        <div class="modal__actions">
+          <button
+            type="button"
+            class="modal__btn"
+            id="qrCancel"
+          >
+            Cancel
+          </button>
+          <button type="submit" class="modal__btn modal__btn--primary">
+            Continue to Flash
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div id="macModal" class="modal" hidden>
+      <div class="modal__backdrop" data-modal-dismiss="macModal"></div>
+      <form class="modal__card" id="macForm" autocomplete="off">
+        <h3 class="modal__title">MAC Address <span style="opacity:.6;font-weight:400;font-size:13px">(optional)</span></h3>
+        <p class="modal__subtitle">
+          If you captured the device MAC address during flashing, enter it
+          here. Leave blank to skip.
+        </p>
+        <label for="macInput" class="modal__label">MAC Address</label>
+        <input
+          type="text"
+          id="macInput"
+          class="modal__input"
+          placeholder="AA:BB:CC:DD:EE:FF"
+        />
+        <div class="modal__actions">
+          <button type="button" class="modal__btn" id="macSkip">
+            Skip
+          </button>
+          <button type="submit" class="modal__btn modal__btn--primary">
+            Save
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div id="modeModal" class="modal" hidden>
+      <div class="modal__backdrop" data-modal-dismiss="modeModal"></div>
+      <div class="modal__card">
+        <h3 class="modal__title">Connect Board</h3>
+        <p class="modal__subtitle">
+          What would you like to do once the board is connected? Choose
+          <strong>Flash Firmware</strong> to write firmware (you'll be asked
+          for the board QR), or <strong>View / Logs</strong> to only open
+          the serial console.
+        </p>
+        <div class="modal__actions">
+          <button type="button" class="modal__btn" id="modeCancel">
+            Cancel
+          </button>
+          <button type="button" class="modal__btn" id="modeView">
+            View / Logs
+          </button>
+          <button
+            type="button"
+            class="modal__btn modal__btn--primary"
+            id="modeFlash"
+          >
+            Flash Firmware
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="outcomeModal" class="modal" hidden>
+      <div class="modal__backdrop" data-modal-dismiss="outcomeModal"></div>
+      <div class="modal__card">
+        <h3 class="modal__title">Flash Outcome</h3>
+        <p class="modal__subtitle">
+          How did this flash attempt finish?
+          <strong>Success</strong> records it and asks for the MAC address.
+          <strong>Failed</strong> logs it as cancelled.
+          <strong>Ignore</strong> discards this attempt without saving any
+          entry.
+        </p>
+        <div class="modal__actions">
+          <button type="button" class="modal__btn" id="outcomeIgnore">
+            Ignore
+          </button>
+          <button
+            type="button"
+            class="modal__btn modal__btn--danger"
+            id="outcomeFail"
+          >
+            Failed
+          </button>
+          <button
+            type="button"
+            class="modal__btn modal__btn--primary"
+            id="outcomeSuccess"
+          >
+            Success
+          </button>
+        </div>
+      </div>
+    </div>
 
     <script
       type="module"
@@ -320,7 +500,8 @@
         function init() {
           var ACCESS_PASSWORD = "WIRELESS";
           var SESSION_KEY = "myaccess_auth_ts";
-          var SESSION_TTL_MS = 60 * 60 * 1000; // 1 hour
+          var SESSION_TTL_MS = 8 * 60 * 60 * 1000; // 8 hours of inactivity
+          var IDLE_RESET_THROTTLE_MS = 30 * 1000; // throttle idle refresh writes
 
           var loginEl = document.getElementById("login");
           var appEl = document.getElementById("app");
@@ -369,9 +550,15 @@
 
           function formatRemaining(ms) {
             var totalSec = Math.max(0, Math.floor(ms / 1000));
-            var m = Math.floor(totalSec / 60);
+            var h = Math.floor(totalSec / 3600);
+            var m = Math.floor((totalSec % 3600) / 60);
             var s = totalSec % 60;
-            return m + "m " + (s < 10 ? "0" : "") + s + "s";
+            var pad = function (n) {
+              return (n < 10 ? "0" : "") + n;
+            };
+            if (h > 0) return h + "h " + pad(m) + "m";
+            if (m > 0) return m + "m " + pad(s) + "s";
+            return s + "s";
           }
 
           function updateExpiryLabel() {
@@ -407,7 +594,17 @@
               logout(true);
             }, remaining);
             updateExpiryLabel();
-            expiryTickTimer = setInterval(updateExpiryLabel, 1000);
+            expiryTickTimer = setInterval(updateExpiryLabel, 30 * 1000);
+          }
+
+          var lastIdleReset = 0;
+          function resetIdleTimer() {
+            if (appEl.hidden) return;
+            var now = Date.now();
+            if (now - lastIdleReset < IDLE_RESET_THROTTLE_MS) return;
+            lastIdleReset = now;
+            safeSet(SESSION_KEY, String(now));
+            scheduleAutoLogout();
           }
 
           function showApp() {
@@ -415,6 +612,7 @@
             appEl.hidden = false;
             var notSupportedEl = document.getElementById("notSupported");
             var mainEl = document.getElementById("main");
+            var flashLogEl = document.getElementById("flashLog");
             if (navigator.serial) {
               if (notSupportedEl) notSupportedEl.style.display = "none";
               if (mainEl) mainEl.style.display = "grid";
@@ -422,7 +620,11 @@
               if (notSupportedEl) notSupportedEl.style.display = "block";
               if (mainEl) mainEl.style.display = "none";
             }
+            if (flashLogEl) flashLogEl.style.display = "block";
             scheduleAutoLogout();
+            if (typeof window.initFlashLogger === "function") {
+              window.initFlashLogger();
+            }
           }
 
           function logout(expired) {
@@ -431,6 +633,8 @@
             appEl.hidden = true;
             loginEl.hidden = false;
             input.value = "";
+            var flashLogEl = document.getElementById("flashLog");
+            if (flashLogEl) flashLogEl.style.display = "none";
             if (expiryEl) expiryEl.textContent = "";
             if (expired) {
               errorEl.textContent = "Session expired. Please log in again.";
@@ -510,6 +714,18 @@
             }
           });
 
+          // idle-activity reset → any of these refresh the 8 h timer
+          [
+            "mousemove",
+            "mousedown",
+            "keydown",
+            "scroll",
+            "touchstart",
+            "click",
+          ].forEach(function (evt) {
+            document.addEventListener(evt, resetIdleTimer, { passive: true });
+          });
+
           if (getRemainingMs() > 0) {
             showApp();
           } else {
@@ -527,6 +743,642 @@
         } else {
           init();
         }
+      })();
+    </script>
+    <script>
+      (function () {
+        var LOG_KEY = "myaccess_flash_log_v1";
+        var CSV_HEADERS = [
+          "QR Serial",
+          "Code File",
+          "Flash Date Time",
+          "Status",
+          "MAC Address",
+        ];
+
+        var initialized = false;
+        // When set, the user picked "Flash" and entered a QR for the current
+        // attempt — we hold the data here until the dialog closes and the
+        // user picks an outcome (success / fail / ignore). View mode leaves
+        // this null so nothing is ever logged.
+        var activeContext = null;
+        var activeInstallBtn = null;
+        var dialogObserver = null;
+
+        function safeReadLog() {
+          try {
+            var raw = localStorage.getItem(LOG_KEY);
+            if (!raw) return [];
+            var arr = JSON.parse(raw);
+            return Array.isArray(arr) ? arr : [];
+          } catch (e) {
+            return [];
+          }
+        }
+        function safeWriteLog(entries) {
+          try {
+            localStorage.setItem(LOG_KEY, JSON.stringify(entries));
+          } catch (e) {}
+        }
+
+        function entryKey(e) {
+          return (
+            (e.qr || "").trim().toLowerCase() +
+            "||" +
+            (e.flashDateTime || "")
+          );
+        }
+
+        function upsertEntry(entry) {
+          var entries = safeReadLog();
+          var k = entryKey(entry);
+          var found = false;
+          for (var i = 0; i < entries.length; i++) {
+            if (entryKey(entries[i]) === k) {
+              entries[i] = Object.assign({}, entries[i], entry);
+              found = true;
+              break;
+            }
+          }
+          if (!found) entries.unshift(entry);
+          safeWriteLog(entries);
+          renderLog();
+        }
+
+        function formatDate(iso) {
+          if (!iso) return "";
+          var d = new Date(iso);
+          if (isNaN(d.getTime())) return iso;
+          var pad = function (n) {
+            return (n < 10 ? "0" : "") + n;
+          };
+          return (
+            pad(d.getDate()) +
+            "-" +
+            pad(d.getMonth() + 1) +
+            "-" +
+            d.getFullYear() +
+            " " +
+            pad(d.getHours()) +
+            ":" +
+            pad(d.getMinutes()) +
+            ":" +
+            pad(d.getSeconds())
+          );
+        }
+
+        function renderLog() {
+          var tbody = document.getElementById("logTbody");
+          var empty = document.getElementById("logEmpty");
+          var countEl = document.getElementById("logCount");
+          if (!tbody) return;
+          var entries = safeReadLog();
+          tbody.innerHTML = "";
+          if (countEl) countEl.textContent = String(entries.length);
+          if (entries.length === 0) {
+            if (empty) empty.style.display = "block";
+            return;
+          }
+          if (empty) empty.style.display = "none";
+          for (var i = 0; i < entries.length; i++) {
+            var e = entries[i];
+            var tr = document.createElement("tr");
+            var statusClass = "started";
+            if (/success/i.test(e.status || "")) statusClass = "success";
+            else if (/error|fail/i.test(e.status || "")) statusClass = "error";
+            tr.innerHTML =
+              "<td>" + escapeHtml(e.qr || "") + "</td>" +
+              "<td>" + escapeHtml(e.codeFile || "") + "</td>" +
+              "<td>" + escapeHtml(formatDate(e.flashDateTime)) + "</td>" +
+              '<td><span class="flash-log__status flash-log__status--' +
+              statusClass +
+              '">' +
+              escapeHtml(e.status || "") +
+              "</span></td>" +
+              "<td" +
+              (e.macAddress ? "" : ' class="muted"') +
+              ">" +
+              escapeHtml(e.macAddress || "—") +
+              "</td>";
+            tbody.appendChild(tr);
+          }
+        }
+
+        function escapeHtml(s) {
+          return String(s == null ? "" : s)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+        }
+
+        // ----- CSV ------
+        function csvEscape(v) {
+          var s = v == null ? "" : String(v);
+          if (/[",\r\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+          return s;
+        }
+
+        function toCsv(entries) {
+          var lines = [CSV_HEADERS.join(",")];
+          for (var i = 0; i < entries.length; i++) {
+            var e = entries[i];
+            lines.push(
+              [
+                csvEscape(e.qr),
+                csvEscape(e.codeFile),
+                csvEscape(e.flashDateTime),
+                csvEscape(e.status),
+                csvEscape(e.macAddress),
+              ].join(","),
+            );
+          }
+          return lines.join("\r\n");
+        }
+
+        function parseCsv(text) {
+          // RFC 4180-ish parser, supports quoted fields and embedded commas/newlines
+          var rows = [];
+          var row = [];
+          var field = "";
+          var inQuotes = false;
+          for (var i = 0; i < text.length; i++) {
+            var c = text[i];
+            if (inQuotes) {
+              if (c === '"') {
+                if (text[i + 1] === '"') {
+                  field += '"';
+                  i++;
+                } else {
+                  inQuotes = false;
+                }
+              } else {
+                field += c;
+              }
+            } else {
+              if (c === '"') {
+                inQuotes = true;
+              } else if (c === ",") {
+                row.push(field);
+                field = "";
+              } else if (c === "\r") {
+                // ignore, handled by \n
+              } else if (c === "\n") {
+                row.push(field);
+                rows.push(row);
+                row = [];
+                field = "";
+              } else {
+                field += c;
+              }
+            }
+          }
+          if (field.length > 0 || row.length > 0) {
+            row.push(field);
+            rows.push(row);
+          }
+          return rows;
+        }
+
+        function rowsToEntries(rows) {
+          if (!rows || rows.length === 0) return [];
+          var header = rows[0].map(function (h) {
+            return h.trim().toLowerCase();
+          });
+          function idx(names) {
+            for (var i = 0; i < names.length; i++) {
+              var p = header.indexOf(names[i]);
+              if (p !== -1) return p;
+            }
+            return -1;
+          }
+          var iQr = idx(["qr serial", "qr", "qr/serial", "serial"]);
+          var iFile = idx(["code file", "file", "manifest", "code"]);
+          var iDate = idx([
+            "flash date time",
+            "flash date",
+            "flash datetime",
+            "date",
+            "datetime",
+            "timestamp",
+          ]);
+          var iStatus = idx(["status"]);
+          var iMac = idx(["mac address", "mac"]);
+          var out = [];
+          for (var r = 1; r < rows.length; r++) {
+            var row = rows[r];
+            if (row.length === 1 && row[0] === "") continue; // blank line
+            var qr = iQr >= 0 ? (row[iQr] || "").trim() : "";
+            if (!qr) continue;
+            out.push({
+              qr: qr,
+              codeFile: iFile >= 0 ? (row[iFile] || "").trim() : "",
+              flashDateTime: iDate >= 0 ? (row[iDate] || "").trim() : "",
+              status: iStatus >= 0 ? (row[iStatus] || "").trim() : "",
+              macAddress: iMac >= 0 ? (row[iMac] || "").trim() : "",
+            });
+          }
+          return out;
+        }
+
+        function downloadCsv() {
+          var entries = safeReadLog();
+          var csv = toCsv(entries);
+          var blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement("a");
+          var stamp = new Date()
+            .toISOString()
+            .replace(/[:T]/g, "-")
+            .slice(0, 19);
+          a.href = url;
+          a.download = "flash-log-" + stamp + ".csv";
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(function () {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          }, 0);
+        }
+
+        function mergeImported(imported) {
+          var existing = safeReadLog();
+          var seen = {};
+          for (var i = 0; i < existing.length; i++)
+            seen[entryKey(existing[i])] = true;
+          var added = 0;
+          for (var j = 0; j < imported.length; j++) {
+            var k = entryKey(imported[j]);
+            if (!seen[k]) {
+              existing.push(imported[j]);
+              seen[k] = true;
+              added++;
+            }
+          }
+          // newest first by date if parseable
+          existing.sort(function (a, b) {
+            var da = Date.parse(a.flashDateTime) || 0;
+            var db = Date.parse(b.flashDateTime) || 0;
+            return db - da;
+          });
+          safeWriteLog(existing);
+          renderLog();
+          return added;
+        }
+
+        // ----- Modals ------
+        function openModal(id, focusId) {
+          var el = document.getElementById(id);
+          if (!el) return;
+          el.hidden = false;
+          if (focusId) {
+            setTimeout(function () {
+              var f = document.getElementById(focusId);
+              if (f) f.focus();
+            }, 20);
+          }
+        }
+        function closeModal(id) {
+          var el = document.getElementById(id);
+          if (el) el.hidden = true;
+        }
+
+        function promptQr(onSubmit, onCancel) {
+          var form = document.getElementById("qrForm");
+          var input = document.getElementById("qrInput");
+          var err = document.getElementById("qrError");
+          var cancelBtn = document.getElementById("qrCancel");
+          if (!form || !input) {
+            onSubmit(window.prompt("Enter board QR / serial number:") || "");
+            return;
+          }
+          input.value = "";
+          if (err) err.hidden = true;
+          openModal("qrModal", "qrInput");
+
+          function cleanup() {
+            form.removeEventListener("submit", onSub);
+            cancelBtn.removeEventListener("click", onCan);
+          }
+          function onSub(e) {
+            e.preventDefault();
+            var v = (input.value || "").trim();
+            if (!v) {
+              if (err) err.hidden = false;
+              input.focus();
+              return;
+            }
+            cleanup();
+            closeModal("qrModal");
+            onSubmit(v);
+          }
+          function onCan() {
+            cleanup();
+            closeModal("qrModal");
+            if (onCancel) onCancel();
+          }
+          form.addEventListener("submit", onSub);
+          cancelBtn.addEventListener("click", onCan);
+        }
+
+        function promptMac(onDone) {
+          var form = document.getElementById("macForm");
+          var input = document.getElementById("macInput");
+          var skipBtn = document.getElementById("macSkip");
+          if (!form || !input) {
+            onDone("");
+            return;
+          }
+          input.value = "";
+          openModal("macModal", "macInput");
+
+          function cleanup() {
+            form.removeEventListener("submit", onSub);
+            skipBtn.removeEventListener("click", onSkip);
+          }
+          function onSub(e) {
+            e.preventDefault();
+            cleanup();
+            closeModal("macModal");
+            onDone((input.value || "").trim());
+          }
+          function onSkip() {
+            cleanup();
+            closeModal("macModal");
+            onDone("");
+          }
+          form.addEventListener("submit", onSub);
+          skipBtn.addEventListener("click", onSkip);
+        }
+
+        function promptMode(onPick, onCancel) {
+          var flashBtn = document.getElementById("modeFlash");
+          var viewBtn = document.getElementById("modeView");
+          var cancelBtn = document.getElementById("modeCancel");
+          if (!flashBtn || !viewBtn) {
+            onPick("flash");
+            return;
+          }
+          openModal("modeModal");
+          function cleanup() {
+            flashBtn.removeEventListener("click", onFlash);
+            viewBtn.removeEventListener("click", onView);
+            cancelBtn.removeEventListener("click", onCan);
+          }
+          function onFlash() {
+            cleanup();
+            closeModal("modeModal");
+            onPick("flash");
+          }
+          function onView() {
+            cleanup();
+            closeModal("modeModal");
+            onPick("view");
+          }
+          function onCan() {
+            cleanup();
+            closeModal("modeModal");
+            if (onCancel) onCancel();
+          }
+          flashBtn.addEventListener("click", onFlash);
+          viewBtn.addEventListener("click", onView);
+          cancelBtn.addEventListener("click", onCan);
+        }
+
+        function promptOutcome(onPick) {
+          var sBtn = document.getElementById("outcomeSuccess");
+          var fBtn = document.getElementById("outcomeFail");
+          var iBtn = document.getElementById("outcomeIgnore");
+          if (!sBtn || !fBtn || !iBtn) {
+            onPick("ignore");
+            return;
+          }
+          openModal("outcomeModal");
+          function cleanup() {
+            sBtn.removeEventListener("click", onS);
+            fBtn.removeEventListener("click", onF);
+            iBtn.removeEventListener("click", onI);
+          }
+          function onS() {
+            cleanup();
+            closeModal("outcomeModal");
+            onPick("success");
+          }
+          function onF() {
+            cleanup();
+            closeModal("outcomeModal");
+            onPick("fail");
+          }
+          function onI() {
+            cleanup();
+            closeModal("outcomeModal");
+            onPick("ignore");
+          }
+          sBtn.addEventListener("click", onS);
+          fBtn.addEventListener("click", onF);
+          iBtn.addEventListener("click", onI);
+        }
+
+        // ----- Flash-button interception ------
+        function manifestToCodeFile(manifest) {
+          if (!manifest) return "";
+          // e.g. webflash/QRCodeLocker4/manifest.json → QRCodeLocker4
+          var parts = manifest.split("/").filter(Boolean);
+          if (parts.length >= 2) return parts[parts.length - 2];
+          return manifest;
+        }
+
+        function wireInstallButton(installBtn) {
+          if (installBtn.__qrWired) return;
+          installBtn.__qrWired = true;
+          var activateBtn = installBtn.querySelector('[slot="activate"]');
+          if (!activateBtn) return;
+
+          activateBtn.addEventListener(
+            "click",
+            function (e) {
+              if (activateBtn.__approved) {
+                activateBtn.__approved = false;
+                return; // let this click through to esp-web-tools
+              }
+              e.preventDefault();
+              e.stopImmediatePropagation();
+
+              promptMode(function (mode) {
+                if (mode === "view") {
+                  // No logging. Just open esp-web-tools dialog.
+                  activeContext = null;
+                  activeInstallBtn = installBtn;
+                  activateBtn.__approved = true;
+                  activateBtn.click();
+                  return;
+                }
+                // mode === "flash" → ask QR, then open dialog
+                promptQr(function (qr) {
+                  activeContext = {
+                    qr: qr,
+                    codeFile: manifestToCodeFile(
+                      installBtn.getAttribute("manifest"),
+                    ),
+                    flashDateTime: new Date().toISOString(),
+                  };
+                  activeInstallBtn = installBtn;
+                  activateBtn.__approved = true;
+                  activateBtn.click();
+                });
+              });
+            },
+            true, // capture phase, so we run before esp-web-tools' handler
+          );
+        }
+
+        function handleDialogClosed() {
+          var ctx = activeContext;
+          activeContext = null;
+          activeInstallBtn = null;
+          if (!ctx) return; // view mode → nothing to log
+
+          // small delay so the esp dialog teardown finishes visually before
+          // our outcome modal appears
+          setTimeout(function () {
+            promptOutcome(function (outcome) {
+              if (outcome === "ignore") return; // discard entirely
+              if (outcome === "fail") {
+                upsertEntry({
+                  qr: ctx.qr,
+                  codeFile: ctx.codeFile,
+                  flashDateTime: ctx.flashDateTime,
+                  status: "cancelled",
+                  macAddress: "",
+                });
+                return;
+              }
+              // success → save then ask MAC
+              var entry = {
+                qr: ctx.qr,
+                codeFile: ctx.codeFile,
+                flashDateTime: ctx.flashDateTime,
+                status: "success",
+                macAddress: "",
+              };
+              upsertEntry(entry);
+              promptMac(function (mac) {
+                if (mac) {
+                  entry.macAddress = mac;
+                  upsertEntry(entry);
+                }
+              });
+            });
+          }, 150);
+        }
+
+        function startDialogObserver() {
+          if (dialogObserver) return;
+          dialogObserver = new MutationObserver(function (muts) {
+            for (var i = 0; i < muts.length; i++) {
+              var removed = muts[i].removedNodes;
+              for (var j = 0; j < removed.length; j++) {
+                var n = removed[j];
+                if (
+                  n &&
+                  n.nodeType === 1 &&
+                  n.tagName &&
+                  n.tagName.toLowerCase() === "ewt-install-dialog"
+                ) {
+                  handleDialogClosed();
+                }
+              }
+            }
+          });
+          dialogObserver.observe(document.body, { childList: true });
+        }
+
+        // ----- Wire up CSV buttons ------
+        function wireLogButtons() {
+          var uploadBtn = document.getElementById("uploadCsvBtn");
+          var uploadInput = document.getElementById("csvUpload");
+          var exportBtn = document.getElementById("exportCsvBtn");
+          var clearBtn = document.getElementById("clearLogBtn");
+
+          if (uploadBtn && uploadInput) {
+            uploadBtn.addEventListener("click", function () {
+              uploadInput.value = "";
+              uploadInput.click();
+            });
+            uploadInput.addEventListener("change", function () {
+              var file = uploadInput.files && uploadInput.files[0];
+              if (!file) return;
+              var reader = new FileReader();
+              reader.onload = function () {
+                try {
+                  var rows = parseCsv(String(reader.result || ""));
+                  var entries = rowsToEntries(rows);
+                  if (entries.length === 0) {
+                    alert(
+                      "No valid rows found. Expected columns: " +
+                        CSV_HEADERS.join(", "),
+                    );
+                    return;
+                  }
+                  var added = mergeImported(entries);
+                  alert(
+                    "Imported " +
+                      entries.length +
+                      " row(s). " +
+                      added +
+                      " new, " +
+                      (entries.length - added) +
+                      " duplicate(s) skipped.",
+                  );
+                } catch (e) {
+                  alert("Failed to parse CSV: " + e.message);
+                }
+              };
+              reader.readAsText(file);
+            });
+          }
+          if (exportBtn) {
+            exportBtn.addEventListener("click", downloadCsv);
+          }
+          if (clearBtn) {
+            clearBtn.addEventListener("click", function () {
+              if (safeReadLog().length === 0) return;
+              if (
+                confirm(
+                  "Clear all flash log entries from this browser? This cannot be undone.",
+                )
+              ) {
+                safeWriteLog([]);
+                renderLog();
+              }
+            });
+          }
+        }
+
+        function init() {
+          if (initialized) {
+            renderLog();
+            return;
+          }
+          initialized = true;
+          wireLogButtons();
+          startDialogObserver();
+          var installBtns = document.querySelectorAll(
+            "esp-web-install-button",
+          );
+          installBtns.forEach(wireInstallButton);
+          // backdrop click closes a modal (treated like Cancel/Skip/Ignore
+          // — we never log anything from a backdrop dismiss).
+          document.addEventListener("click", function (e) {
+            var t = e.target;
+            if (t && t.getAttribute && t.getAttribute("data-modal-dismiss")) {
+              closeModal(t.getAttribute("data-modal-dismiss"));
+            }
+          });
+          renderLog();
+        }
+
+        window.initFlashLogger = init;
       })();
     </script>
   </body>
